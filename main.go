@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"github.com/dedis/protobuf"
 	"github.com/gorilla/mux"
 	"io/ioutil"
@@ -134,6 +135,8 @@ func newMsg(w http.ResponseWriter, r *http.Request) {
 	var _, err6 = udpConn.Write(packetBytes)
 	CheckError(err6)
 
+	fmt.Println("SENDING MSG : \""+msg.Text+"\" TO : "+msg.To)
+
 	udpConn.Close()
 
 }
@@ -160,6 +163,7 @@ func waitForMessages() {
 			CheckError(errDecode)
 
 			if pckt.Text != "" {
+				fmt.Println("RCVD MDG : \""+pckt.Text+"\" FROM :"+from.IP.String())
 				server.MsgBuffer = append(server.MsgBuffer,
 					peerMessage{from.IP.String(), pckt.Text})
 			}
