@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/Korf74/Peerster/utils"
 	"github.com/dedis/protobuf"
 	"github.com/gorilla/mux"
 	"io/ioutil"
@@ -73,18 +72,18 @@ type gossiperAddrMessage struct {
 func getMessages(w http.ResponseWriter, r *http.Request) {
 
 	var body, err = ioutil.ReadAll(r.Body)
-	utils.CheckError(err)
+	CheckError(err)
 
 	body = bytes.TrimPrefix(body, []byte("\xef\xbb\xbf"))
 
 	data, err := json.Marshal(updateMessage{server.MsgBuffer})
 
-	utils.CheckError(err)
+	CheckError(err)
 
 	w.Header().Set("Content-Type", "application/json")
 
 	_, err = w.Write(data)
-	utils.CheckError(err)
+	CheckError(err)
 
 	server.MsgBuffer = make([]peerMessage, 0, 100)
 
@@ -93,47 +92,47 @@ func getMessages(w http.ResponseWriter, r *http.Request) {
 func getPeers(w http.ResponseWriter, r *http.Request) {
 
 	var body, err = ioutil.ReadAll(r.Body)
-	utils.CheckError(err)
+	CheckError(err)
 
 	body = bytes.TrimPrefix(body, []byte("\xef\xbb\xbf"))
 
 	data, err := json.Marshal(setupMessage{server.Addr.IP.String(), server.Peers})
 
-	utils.CheckError(err)
+	CheckError(err)
 
 	w.Header().Set("Content-Type", "application/json")
 
 	_, err = w.Write(data)
-	utils.CheckError(err)
+	CheckError(err)
 
 }
 
 func newMsg(w http.ResponseWriter, r *http.Request) {
 
 	var body, err = ioutil.ReadAll(r.Body)
-	utils.CheckError(err)
+	CheckError(err)
 
 	body = bytes.TrimPrefix(body, []byte("\xef\xbb\xbf"))
 
 	var msg = clientMessage{}
 	err = json.Unmarshal(body, &msg)
-	utils.CheckError(err)
+	CheckError(err)
 
 	var pckt = ChatMessage{}
 
 	pckt.Text = msg.Text
 
 	var packetBytes, err4 = protobuf.Encode(&pckt)
-	utils.CheckError(err4)
+	CheckError(err4)
 
 	peerAddr, err := net.ResolveUDPAddr("udp4", msg.To+":5001")
-	utils.CheckError(err)
+	CheckError(err)
 
 	var udpConn, err5 = net.DialUDP("udp4", nil, peerAddr)
-	utils.CheckError(err5)
+	CheckError(err5)
 
 	var _, err6 = udpConn.Write(packetBytes)
-	utils.CheckError(err6)
+	CheckError(err6)
 
 	udpConn.Close()
 
@@ -142,7 +141,7 @@ func newMsg(w http.ResponseWriter, r *http.Request) {
 func waitForMessages() {
 
 	var connection, err = net.ListenUDP("udp4", &net.UDPAddr{server.Addr.IP, 5001, server.Addr.Zone})
-	utils.CheckError(err)
+	CheckError(err)
 
 	defer connection.Close()
 
@@ -151,14 +150,14 @@ func waitForMessages() {
 	for {
 
 		var sz, from, errRcv = connection.ReadFromUDP(buffer)
-		utils.CheckError(errRcv)
+		CheckError(errRcv)
 
 		if errRcv == nil {
 
 			var pckt = &ChatMessage{}
 
 			var errDecode = protobuf.Decode(buffer[:sz], pckt)
-			utils.CheckError(errDecode)
+			CheckError(errDecode)
 
 			if pckt.Text != "" {
 				server.MsgBuffer = append(server.MsgBuffer,
@@ -175,13 +174,13 @@ func waitForMessages() {
 func createGossiper(w http.ResponseWriter, r *http.Request) {
 
 	var body, err = ioutil.ReadAll(r.Body)
-	utils.CheckError(err)
+	CheckError(err)
 
 	body = bytes.TrimPrefix(body, []byte("\xef\xbb\xbf"))
 
 	var msg = gossiperAddrMessage{}
 	err = json.Unmarshal(body, &msg)
-	utils.CheckError(err)
+	CheckError(err)
 
 	var id = len(gossipers)
 
@@ -199,7 +198,7 @@ func createGossiper(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 
 		data, err = json.Marshal(createGossiperMessage{-1, ""}) // TODO concurrency
-		utils.CheckError(err)
+		CheckError(err)
 
 	} else {
 
@@ -216,14 +215,14 @@ func createGossiper(w http.ResponseWriter, r *http.Request) {
 		go waitForMessages(&gossiper, channel)
 
 		udpAddr, err := net.ResolveUDPAddr("udp4", "127.0.0.1:"+uiPort)
-		utils.CheckError(err)
+		CheckError(err)
 
 		gossiper.Addr = udpAddr
 
 		gossipers = append(gossipers, &gossiper)
 
 		data, err = json.Marshal(createGossiperMessage{id, udpAddrGossiper}) // TODO concurrency
-		utils.CheckError(err)
+		CheckError(err)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -240,7 +239,7 @@ func main() {
 
 	server.Peers = os.Args[1:]
 	udpAddr, err := net.ResolveUDPAddr("udp4", "127.0.0.1:5000")
-	utils.CheckError(err)
+	CheckError(err)
 
 	go waitForMessages()
 
