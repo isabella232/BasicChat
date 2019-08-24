@@ -241,8 +241,8 @@ func main() {
 
 	server = &ServerInfo{}
 
-	server.Peers = os.Args[1:]
-	udpAddr, err := net.ResolveUDPAddr("udp4", "127.0.0.1:5000")
+	server.Peers = os.Args[2:]
+	udpAddr, err := net.ResolveUDPAddr("udp4", os.Args[1]+":5000")
 	CheckError(err)
 
 	go waitForMessages()
