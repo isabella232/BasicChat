@@ -839,6 +839,9 @@ Website: http://emilcarlsson.se/
                 <p class="peerName">PEER NAME</p>
             </div>
         </div>
+        <div>
+            <input id="autoMsgBox" onchange='handleCheckBox(this);' type="checkbox" name="automaticMessages" value="">Activate automatic messages to the selected contact<br>
+        </div>
         <div class="contacts">
             <p>CONTACTS : </p>
             <form class="origin">
@@ -969,6 +972,14 @@ $(window).on('keydown', function (e) {
         return false;
     }
 });
+
+function handleCheckBox(checkbox) {
+    if(checkbox.checked){
+        //TODO
+    }else{
+        // TODO
+    }
+}
 
 function test() {
     alert("TEST");
