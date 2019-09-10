@@ -52,6 +52,14 @@ type nickNameMessage struct {
 	NickName string
 }
 
+func encryptString(str string) {
+
+}
+
+func decryptString(str string) {
+
+}
+
 func getMessages(w http.ResponseWriter, r *http.Request) {
 
 	var body, err = ioutil.ReadAll(r.Body)
@@ -89,18 +97,17 @@ func getPeers(w http.ResponseWriter, r *http.Request) {
 
 	CheckError(err)
 
+	// TODO header info on encryption
+	if true {
+		encrypted = true
+	} else {
+		encrypted = false
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 
 	_, err = w.Write(data)
 	CheckError(err)
-
-}
-
-func handleEncryption(w http.ResponseWriter, r *http.Request) {
-
-	encrypted = true
-
-
 
 }
 
@@ -117,7 +124,16 @@ func newMsg(w http.ResponseWriter, r *http.Request) {
 
 	var pckt = ChatMessage{}
 
-	pckt.Text = msg.Text
+	text := ""
+
+	if encrypted {
+		text, err = EncryptString(msg.Text)
+		utils.CheckError(err)
+	} else {
+		text = msg.Text
+	}
+
+	pckt.Text = text
 	pckt.Nickname = nickName
 
 	var packetBytes, err4 = protobuf.Encode(&pckt)
@@ -132,7 +148,7 @@ func newMsg(w http.ResponseWriter, r *http.Request) {
 	var _, err6 = udpConn.Write(packetBytes)
 	CheckError(err6)
 
-	fmt.Println("SENDING MSG : \""+msg.Text+"\" TO : "+msg.To)
+	fmt.Println("SENDING MSG : \""+text+"\" TO : "+msg.To)
 
 	udpConn.Close()
 
@@ -160,9 +176,19 @@ func waitForMessages() {
 			CheckError(errDecode)
 
 			if pckt.Text != "" {
+
+				text := ""
+
+				if encrypted {
+					text, err = DecryptString(pckt.Text)
+					utils.CheckError(err)
+				} else {
+					text = pckt.Text
+				}
+
 				fmt.Println("RCVD MDG : \"" + pckt.Text + "\" FROM :" + from.IP.String())
 				server.MsgBuffer = append(server.MsgBuffer,
-					peerMessage{from.IP.String(), pckt.Nickname, pckt.Text})
+					peerMessage{from.IP.String(), pckt.Nickname, text})
 			}
 
 		}
@@ -186,7 +212,6 @@ func main() {
 	r := mux.NewRouter()
 
 	r.Methods("POST").Subrouter().HandleFunc("/newMessage", newMsg)//HandleFunc("/", newMsg)
-	r.Methods("GET").Subrouter().HandleFunc("/enc", handleEncryption)//HandleFunc("/", newMsg)
 	r.Methods("GET").Subrouter().HandleFunc("/getMessages", getMessages)//HandleFunc("/", newMsg)
 	r.Methods("POST").Subrouter().HandleFunc("/getPeers", getPeers)//HandleFunc("/", newMsg)
 	r.Handle("/", http.FileServer(http.Dir(".")))
