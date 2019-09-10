@@ -839,14 +839,6 @@ Website: http://emilcarlsson.se/
                 <p class="peerName">PEER NAME</p>
             </div>
         </div>
-        <div id="search">
-            <input class="peerAddr" type="text" placeholder="New peer address..."/>
-            <input class="peerPort" type="text" placeholder="New peer port..."/>
-            <button id="addcontact">
-                <i class="fa fa-user-plus fa-fw" aria-hidden="true"></i>
-                Add Peer
-            </button>
-        </div>
         <div class="contacts">
             <p>CONTACTS : </p>
             <form class="origin">
@@ -870,10 +862,9 @@ Website: http://emilcarlsson.se/
 <script src='https://code.jquery.com/jquery-2.2.4.min.js'></script>
 <script>$(".messages").animate({scrollTop: $(document).height()}, "fast");
 
-var gossipID = -1;
-var addr = "127.0.0.1:5000";
 var gossiperCreated = false;
-var peers = []
+var peers = [];
+var nickName = "John Doe";
 
 function newMessage() {
     message = $(".message-input input").val();
@@ -905,10 +896,16 @@ function newMessage() {
 
     var gossipAddr = "127.0.0.1";
 
-    $.get("/getPeers",
+    nickName = prompt("Please enter a nickname");
+
+    $('.peerName').text(nickName);
+
+    $.post("/getPeers",
+            JSON.stringify({
+                nickName: nickName
+            }),
             function(data, status) {
                 gossipAddr = data.Addr;
-                $('.peerName').text(gossipAddr);
                 gossiperCreated = true;
 
                 $("input[name='messageType']").change(changeMessageView);
@@ -951,7 +948,8 @@ function update() {
             function(data) {
                 if(data.Messages != null) {
                     for (let i = 0; i < data.Messages.length; ++i) {
-                        $('<li id="'+idFromAddr(data.Messages[i].Origin)+'" class=replies><p align="right"><em>' + data.Messages[i].Origin + ' :</em><br>' + data.Messages[i].Content + '</p></li>')
+                        $('<li id="'+idFromAddr(data.Messages[i].Origin)+'" class=replies><p align="right"><em>' + data.Messages[i].Origin +
+                                ' ('+data.Messages[i].NickName+') :</em><br>' + data.Messages[i].Content + '</p></li>')
                                 .appendTo($('#'+idFromAddr(data.Messages[i].Origin)));
                     }
                 }

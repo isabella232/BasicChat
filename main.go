@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/Korf74/Peerster/utils"
 	"github.com/dedis/protobuf"
 	"github.com/gorilla/mux"
 	"io/ioutil"
@@ -13,6 +14,8 @@ import (
 	"os"
 )
 var server *ServerInfo
+var nickName string = "John Doe"
+var encrypted bool = false
 
 type ServerInfo struct {
 	Addr *net.UDPAddr
@@ -31,6 +34,7 @@ type setupMessage struct {
 
 type peerMessage struct {
 	Origin string
+	NickName string
 	Content string
 }
 
@@ -40,7 +44,12 @@ type clientMessage struct {
 }
 
 type ChatMessage struct {
+	Nickname string
 	Text string
+}
+
+type nickNameMessage struct {
+	NickName string
 }
 
 func getMessages(w http.ResponseWriter, r *http.Request) {
@@ -70,6 +79,12 @@ func getPeers(w http.ResponseWriter, r *http.Request) {
 
 	body = bytes.TrimPrefix(body, []byte("\xef\xbb\xbf"))
 
+	var msg = nickNameMessage{}
+	err = json.Unmarshal(body, &msg)
+	utils.CheckError(err)
+
+	nickName = msg.NickName
+
 	data, err := json.Marshal(setupMessage{server.Addr.IP.String(), server.Peers})
 
 	CheckError(err)
@@ -78,6 +93,14 @@ func getPeers(w http.ResponseWriter, r *http.Request) {
 
 	_, err = w.Write(data)
 	CheckError(err)
+
+}
+
+func handleEncryption(w http.ResponseWriter, r *http.Request) {
+
+	encrypted = true
+
+
 
 }
 
@@ -95,6 +118,7 @@ func newMsg(w http.ResponseWriter, r *http.Request) {
 	var pckt = ChatMessage{}
 
 	pckt.Text = msg.Text
+	pckt.Nickname = nickName
 
 	var packetBytes, err4 = protobuf.Encode(&pckt)
 	CheckError(err4)
@@ -121,7 +145,7 @@ func waitForMessages() {
 
 	defer connection.Close()
 
-	var buffer= make([]byte, 2048)
+	var buffer = make([]byte, 2048)
 
 	for {
 
@@ -132,13 +156,13 @@ func waitForMessages() {
 
 			var pckt= &ChatMessage{}
 
-			var errDecode= protobuf.Decode(buffer[:sz], pckt)
+			var errDecode = protobuf.Decode(buffer[:sz], pckt)
 			CheckError(errDecode)
 
 			if pckt.Text != "" {
 				fmt.Println("RCVD MDG : \"" + pckt.Text + "\" FROM :" + from.IP.String())
 				server.MsgBuffer = append(server.MsgBuffer,
-					peerMessage{from.IP.String(), pckt.Text})
+					peerMessage{from.IP.String(), pckt.Nickname, pckt.Text})
 			}
 
 		}
@@ -162,8 +186,9 @@ func main() {
 	r := mux.NewRouter()
 
 	r.Methods("POST").Subrouter().HandleFunc("/newMessage", newMsg)//HandleFunc("/", newMsg)
+	r.Methods("GET").Subrouter().HandleFunc("/enc", handleEncryption)//HandleFunc("/", newMsg)
 	r.Methods("GET").Subrouter().HandleFunc("/getMessages", getMessages)//HandleFunc("/", newMsg)
-	r.Methods("GET").Subrouter().HandleFunc("/getPeers", getPeers)//HandleFunc("/", newMsg)
+	r.Methods("POST").Subrouter().HandleFunc("/getPeers", getPeers)//HandleFunc("/", newMsg)
 	r.Handle("/", http.FileServer(http.Dir(".")))
 
 	log.Println(http.ListenAndServe(":8080", r))
