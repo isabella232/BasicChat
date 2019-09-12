@@ -12,10 +12,12 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"sync"
 )
 var server *ServerInfo
 var nickName string = "John Doe"
 var encrypted bool = false
+var lock sync.Mutex
 
 type ServerInfo struct {
 	Addr *net.UDPAddr
@@ -62,6 +64,8 @@ func decryptString(str string) {
 
 func getMessages(w http.ResponseWriter, r *http.Request) {
 
+	lock.Lock()
+
 	var body, err = ioutil.ReadAll(r.Body)
 	CheckError(err)
 
@@ -77,6 +81,7 @@ func getMessages(w http.ResponseWriter, r *http.Request) {
 	CheckError(err)
 
 	server.MsgBuffer = make([]peerMessage, 0, 100)
+	lock.Unlock()
 
 }
 
@@ -189,8 +194,10 @@ func waitForMessages() {
 				}
 
 				fmt.Println("RCVD MDG : \"" + pckt.Text + "\" FROM :" + from.IP.String())
+				lock.Lock()
 				server.MsgBuffer = append(server.MsgBuffer,
 					peerMessage{from.IP.String(), pckt.Nickname, text})
+				lock.Unlock()
 			}
 
 		}
@@ -200,6 +207,12 @@ func waitForMessages() {
 }
 
 func main() {
+
+	/*
+	** TODO
+	** Add own ip
+	** ADd padding + name
+	 */
 
 	server = &ServerInfo{}
 

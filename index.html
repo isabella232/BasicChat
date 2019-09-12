@@ -840,7 +840,7 @@ Website: http://emilcarlsson.se/
             </div>
         </div>
         <div>
-            <input id="autoMsgBox" onchange='handleCheckBox(this);' type="checkbox" name="automaticMessages" value="">Activate automatic messages to the selected contact<br>
+            <input id="autoMsgBox" onchange='handleCheckBox(this);' type="checkbox" name="automaticMessages" value="">Enable automatic messages<br>
         </div>
         <div class="contacts">
             <p>CONTACTS : </p>
@@ -1423,7 +1423,7 @@ var quotes = ['"The loneliest people are the kindest. The saddest people smile t
     '"Isn’t it enough to see that a garden is beautiful without having to believe that there are fairies at the bottom of it too?" - Douglas Adams',
     'The cat did it. -Koko the Gorilla, when asked who ripped the sink out of the wall.',
     '"The only way to deal with an unfree world is to become so absolutely free that your very existence is an act of rebellion." -Albert Camus\n',
-    "If you make people think they're thinking, they'll love you; But if you really make them think, they'll hate you. -Don Marquis"]
+    "If you make people think they're thinking, they'll love you; But if you really make them think, they'll hate you. -Don Marquis"];
 
 var gossiperCreated = false;
 var peers = [];
@@ -1502,11 +1502,6 @@ function idFromAddr(addr) {
 
 function update() {
 
-    if(!gossiperCreated) {
-        //createGossiper();
-        return;
-    }
-
     $.get("/getMessages",
             function(data) {
                 if(data.Messages != null) {
@@ -1519,7 +1514,7 @@ function update() {
             },
             "json");
 
-    setTimeout(update, 500);
+    setTimeout(update, 1000);
 };
 
 $('.submit').click(function () {
@@ -1565,7 +1560,7 @@ function sendAutomaticMessages() {
     );
 
     if($('input[name=automaticMessages]').is(":checked")) {
-        setTimeout(sendAutomaticMessages, 5000);
+        setTimeout(sendAutomaticMessages, 20000);
     }
 }
 
