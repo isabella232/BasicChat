@@ -97,19 +97,21 @@ func getPeers(w http.ResponseWriter, r *http.Request) {
 
 	CheckError(err)
 
-	// TODO header info on encryption
-	if true {
-		encrypted = true
-	} else {
-		encrypted = false
-	}
-
 	w.Header().Set("Content-Type", "application/json")
 
 	_, err = w.Write(data)
 	CheckError(err)
 
 }
+
+func getRoot(w http.ResponseWriter, r *http.Request) {
+
+	encrypted = r.Header.Get("encryption_set") == "on"
+
+	http.FileServer(http.Dir(".")).ServeHTTP(w, r)
+
+}
+
 
 func newMsg(w http.ResponseWriter, r *http.Request) {
 
@@ -214,7 +216,8 @@ func main() {
 	r.Methods("POST").Subrouter().HandleFunc("/newMessage", newMsg)//HandleFunc("/", newMsg)
 	r.Methods("GET").Subrouter().HandleFunc("/getMessages", getMessages)//HandleFunc("/", newMsg)
 	r.Methods("POST").Subrouter().HandleFunc("/getPeers", getPeers)//HandleFunc("/", newMsg)
-	r.Handle("/", http.FileServer(http.Dir(".")))
+	r.Methods("GET").Subrouter().HandleFunc("/", getRoot)//HandleFunc("/", newMsg)
+	//r.Handle("/", http.FileServer(http.Dir(".")))
 
 	log.Println(http.ListenAndServe(":8080", r))
 
