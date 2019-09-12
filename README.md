@@ -11,3 +11,8 @@ go build
 ```
 
 GUI on localhost:8080
+
+The encryption header is
+```
+encryption_set on
+```
