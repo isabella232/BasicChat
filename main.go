@@ -219,6 +219,9 @@ func main() {
 	r.Methods("GET").Subrouter().HandleFunc("/getMessages", getMessages)//HandleFunc("/", newMsg)
 	r.Methods("POST").Subrouter().HandleFunc("/getPeers", getPeers)//HandleFunc("/", newMsg)
 	r.Methods("GET").Subrouter().HandleFunc("/", getRoot)//HandleFunc("/", newMsg)
+	r.
+		PathPrefix("/assets/").
+		Handler(http.StripPrefix("/assets/", http.FileServer(http.Dir("."+"/assets/"))))
 	//r.Handle("/", http.FileServer(http.Dir(".")))
 
 	log.Println(http.ListenAndServe(":8080", r))
