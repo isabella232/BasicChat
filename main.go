@@ -208,12 +208,6 @@ func waitForMessages() {
 
 func main() {
 
-	/*
-	** TODO
-	** Add own ip
-	** ADd padding + name
-	 */
-
 	server = &ServerInfo{}
 
 	server.Peers = os.Args[2:]
