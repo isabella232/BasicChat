@@ -179,7 +179,7 @@ func waitForMessages() {
 
 				text := ""
 
-				if pckt.Encrypted {
+				if pckt.Encrypted && encrypted {
 					text, err = DecryptString(pckt.Text)
 					CheckError(err)
 				} else {
