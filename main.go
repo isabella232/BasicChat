@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/Korf74/Peerster/utils"
+	"github.com/Korf74/BasicChat/utils"
 	"github.com/dedis/protobuf"
 	"github.com/gorilla/mux"
 	"io/ioutil"
