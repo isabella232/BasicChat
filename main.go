@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/Korf74/BasicChat/utils"
 	"github.com/dedis/protobuf"
 	"github.com/gorilla/mux"
 	"io/ioutil"
@@ -54,14 +53,6 @@ type nickNameMessage struct {
 	NickName string
 }
 
-func encryptString(str string) {
-
-}
-
-func decryptString(str string) {
-
-}
-
 func getMessages(w http.ResponseWriter, r *http.Request) {
 
 	lock.Lock()
@@ -94,7 +85,7 @@ func getPeers(w http.ResponseWriter, r *http.Request) {
 
 	var msg = nickNameMessage{}
 	err = json.Unmarshal(body, &msg)
-	utils.CheckError(err)
+	CheckError(err)
 
 	nickName = msg.NickName
 
@@ -135,7 +126,7 @@ func newMsg(w http.ResponseWriter, r *http.Request) {
 
 	if encrypted {
 		text, err = EncryptString(msg.Text)
-		utils.CheckError(err)
+		CheckError(err)
 	} else {
 		text = msg.Text
 	}
@@ -188,7 +179,7 @@ func waitForMessages() {
 
 				if encrypted {
 					text, err = DecryptString(pckt.Text)
-					utils.CheckError(err)
+					CheckError(err)
 				} else {
 					text = pckt.Text
 				}
@@ -207,6 +198,10 @@ func waitForMessages() {
 }
 
 func main() {
+	/**
+	** TODO
+	** SCROLL
+	 */
 
 	server = &ServerInfo{}
 

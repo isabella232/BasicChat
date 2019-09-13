@@ -1436,7 +1436,7 @@ function insertNewLines(str) {
     current = str.substr(0, 15);
     str = str.substr(15);
 
-    while(str.length > 15) {
+    while(str.length > 0) {
         current += str.substr(0, 15);
         current += "\n";
         str = str.substr(15);
@@ -1459,7 +1459,7 @@ function newMessage() {
     $('<li id="'+checkedValue+'" class="sent"><p><em>You ('+ ip +') :</br></em>' + message + '</p></li>').appendTo($('#'+checkedValue));
     $('.message-input input').val(null);
     $('.contact.active .preview').html('<span>You: </span>' + message);
-    $(".messages").animate({scrollTop: $(document).height()}, "fast");
+    $(".messages").animate({scrollTop: $(document).height() * 100}, "fast");
 
     $.post("/newMessage",
             JSON.stringify({
@@ -1534,6 +1534,8 @@ function update() {
                 }
             },
             "json");
+
+    $(".messages").animate({scrollTop: $(document).height() * 100}, "fast");
 
     setTimeout(update, 1000);
 };
