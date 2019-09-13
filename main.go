@@ -47,6 +47,7 @@ type clientMessage struct {
 type ChatMessage struct {
 	Nickname string
 	Text string
+	Encrypted bool
 }
 
 type nickNameMessage struct {
@@ -133,6 +134,7 @@ func newMsg(w http.ResponseWriter, r *http.Request) {
 
 	pckt.Text = text
 	pckt.Nickname = nickName
+	pckt.Encrypted = encrypted
 
 	var packetBytes, err4 = protobuf.Encode(&pckt)
 	CheckError(err4)
@@ -177,7 +179,7 @@ func waitForMessages() {
 
 				text := ""
 
-				if encrypted {
+				if pckt.Encrypted {
 					text, err = DecryptString(pckt.Text)
 					CheckError(err)
 				} else {
